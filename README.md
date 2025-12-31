@@ -29,12 +29,12 @@ A lightweight, powerful, and fully customizable node-based graph editor built wi
 **Option 1: Direct Download**
 ```bash
 # Download the component
-curl -O https://raw.githubusercontent.com/yourusername/graph-editor/main/graph-editor-unified.js
+curl -O https://raw.githubusercontent.com/hassaanmaqsood/graph-editor/main/graph-editor-unified.js
 ```
 
 **Option 2: CDN (via jsDelivr)**
 ```html
-<script src="https://cdn.jsdelivr.net/gh/yourusername/graph-editor@main/graph-editor-unified.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/hassaanmaqsood/graph-editor@main/graph-editor-unified.js"></script>
 ```
 
 **Option 3: npm (coming soon)**
