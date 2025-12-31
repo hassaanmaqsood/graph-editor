@@ -39,7 +39,7 @@ curl -O https://raw.githubusercontent.com/hassaanmaqsood/graph-editor/main/graph
 
 **Option 3: npm (coming soon)**
 ```bash
-npm install @yourusername/graph-editor
+npm install @hassaanmaqsood/graph-editor
 ```
 
 ### Basic Usage
@@ -59,7 +59,7 @@ npm install @yourusername/graph-editor
 <body>
   <graph-editor id="editor"></graph-editor>
   
-  <script src="https://cdn.jsdelivr.net/gh/yourusername/graph-editor@main/graph-editor-unified.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hassaanmaqsood/graph-editor@main/graph-editor-unified.js"></script>
   <script>
     const editor = document.getElementById('editor');
     
@@ -264,7 +264,7 @@ graph-editor {
 
 ```html
 <graph-editor id="editor">
-  <link slot="stylesheet" href="https://raw.githubusercontent.com/yourusername/graph-editor/main/themes/cyberpunk.css">
+  <link slot="stylesheet" href="https://raw.githubusercontent.com/hassaanmaqsood/graph-editor/main/themes/cyberpunk.css">
 </graph-editor>
 ```
 
@@ -280,16 +280,16 @@ editor.setStylesheet(`
 `);
 
 // Load from URL
-await editor.loadStylesheetFromURL('https://raw.githubusercontent.com/yourusername/graph-editor/main/themes/neon.css');
+await editor.loadStylesheetFromURL('https://raw.githubusercontent.com/hassaanmaqsood/graph-editor/main/themes/neon.css');
 ```
 
 ### Pre-made Themes
 
 Check out the `/themes` directory for ready-to-use themes:
-- [Cyberpunk](https://raw.githubusercontent.com/yourusername/graph-editor/main/themes/cyberpunk.css) - Hot pink & cyan with glow effects
-- [Minimal Light](https://raw.githubusercontent.com/yourusername/graph-editor/main/themes/minimal-light.css) - Clean professional light theme
-- [Neon](https://raw.githubusercontent.com/yourusername/graph-editor/main/themes/neon.css) - Full cyberpunk glow with animations
-- [Blueprint](https://raw.githubusercontent.com/yourusername/graph-editor/main/themes/blueprint.css) - Technical drawing style
+- [Cyberpunk](https://raw.githubusercontent.com/hassaanmaqsood/graph-editor/main/themes/cyberpunk.css) - Hot pink & cyan with glow effects
+- [Minimal Light](https://raw.githubusercontent.com/hassaanmaqsood/graph-editor/main/themes/minimal-light.css) - Clean professional light theme
+- [Neon](https://raw.githubusercontent.com/hassaanmaqsood/graph-editor/main/themes/neon.css) - Full cyberpunk glow with animations
+- [Blueprint](https://raw.githubusercontent.com/hassaanmaqsood/graph-editor/main/themes/blueprint.css) - Technical drawing style
 
 ## 📦 API Reference
 
@@ -313,7 +313,7 @@ Check out the `/themes` directory for ready-to-use themes:
 | `setStylesheet(css)` | Apply custom CSS |
 | `loadStylesheetFromURL(url)` | Load external stylesheet |
 
-[Full API Documentation](https://github.com/yourusername/graph-editor/blob/main/docs/API.md)
+[Full API Documentation](https://github.com/hassaanmaqsood/graph-editor/blob/main/docs/API.md)
 
 ## 🎯 Examples
 
@@ -352,10 +352,10 @@ editor.addEdge(process.dataset.nodeId, end.dataset.nodeId, 'out', 'in');
 
 ### Live Demos
 
-- [Basic Usage](https://raw.githubusercontent.com/yourusername/graph-editor/main/demo-unified.html)
-- [Keyboard & Zoom Controls](https://raw.githubusercontent.com/yourusername/graph-editor/main/keyboard-zoom-demo.html)
-- [Custom Styling](https://raw.githubusercontent.com/yourusername/graph-editor/main/styling-demo.html)
-- [Stylesheet Methods](https://raw.githubusercontent.com/yourusername/graph-editor/main/stylesheet-methods-demo.html)
+- [Basic Usage](https://raw.githubusercontent.com/hassaanmaqsood/graph-editor/main/demo-unified.html)
+- [Keyboard & Zoom Controls](https://raw.githubusercontent.com/hassaanmaqsood/graph-editor/main/keyboard-zoom-demo.html)
+- [Custom Styling](https://raw.githubusercontent.com/hassaanmaqsood/graph-editor/main/styling-demo.html)
+- [Stylesheet Methods](https://raw.githubusercontent.com/hassaanmaqsood/graph-editor/main/stylesheet-methods-demo.html)
 
 ## 🏗️ Project Structure
 
@@ -427,15 +427,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 💬 Community
 
-- [GitHub Issues](https://github.com/yourusername/graph-editor/issues) - Bug reports and feature requests
-- [GitHub Discussions](https://github.com/yourusername/graph-editor/discussions) - Questions and community chat
+- [GitHub Issues](https://github.com/hassaanmaqsood/graph-editor/issues) - Bug reports and feature requests
+- [GitHub Discussions](https://github.com/hassaanmaqsood/graph-editor/discussions) - Questions and community chat
 
 ## 🌟 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=yourusername/graph-editor&type=Date)](https://star-history.com/#yourusername/graph-editor&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=hassaanmaqsood/graph-editor&type=Date)](https://star-history.com/#hassaanmaqsood/graph-editor&Date)
 
 ---
 
-**Built with ❤️ by [Your Name](https://github.com/yourusername)**
+**Built with ❤️ by [Hassaaan](https://github.com/hassaanmaqsood)**
 
 [⬆ Back to top](#graph-editor-web-component)
