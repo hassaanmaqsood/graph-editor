@@ -470,13 +470,34 @@ Fired when an edge is removed.
 ### Selection Events
 
 #### `selection-changed`
-Fired when selection changes.
+Fired when selection changes (including when cleared).
 
 **Detail:**
 ```javascript
+// When single node selected
 {
-  selected: HTMLElement | 'multiple' | null,
-  count: number // Only present for multiple selection
+  selected: HTMLElement,
+  type: 'node',
+  nodeId: string
+}
+
+// When single edge selected
+{
+  selected: SVGPathElement,
+  type: 'edge',
+  edgeId: string
+}
+
+// When multiple nodes selected
+{
+  selected: 'multiple',
+  count: number
+}
+
+// When selection is cleared
+{
+  selected: null,
+  count: 0
 }
 ```
 
@@ -509,12 +530,41 @@ editor.addEventListener('node-added', (e) => {
 });
 
 editor.addEventListener('selection-changed', (e) => {
-  if (e.detail.selected === 'multiple') {
-    console.log(`${e.detail.count} nodes selected`);
-  } else if (e.detail.selected) {
-    console.log('Single element selected');
-  } else {
+  const { selected, type, count } = e.detail;
+  
+  if (selected === 'multiple') {
+    console.log(`Multiple selection: ${count} nodes selected`);
+  } else if (selected === null) {
     console.log('Selection cleared');
+  } else if (type === 'node') {
+    console.log('Node selected:', e.detail.nodeId);
+  } else if (type === 'edge') {
+    console.log('Edge selected:', e.detail.edgeId);
+  }
+});
+
+// Example: Update UI based on selection
+editor.addEventListener('selection-changed', (e) => {
+  const deleteBtn = document.getElementById('delete-btn');
+  const propertiesPanel = document.getElementById('properties');
+  
+  if (e.detail.selected === null) {
+    // Nothing selected
+    deleteBtn.disabled = true;
+    propertiesPanel.innerHTML = '<p>No selection</p>';
+  } else if (e.detail.selected === 'multiple') {
+    // Multiple nodes
+    deleteBtn.disabled = false;
+    propertiesPanel.innerHTML = `<p>${e.detail.count} nodes selected</p>`;
+  } else {
+    // Single element
+    deleteBtn.disabled = false;
+    if (e.detail.type === 'node') {
+      const nodeData = editor.getNodeData(e.detail.nodeId);
+      propertiesPanel.innerHTML = `<h3>${nodeData.title}</h3>`;
+    } else {
+      propertiesPanel.innerHTML = '<p>Edge selected</p>';
+    }
   }
 });
 ```
