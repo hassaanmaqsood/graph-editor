@@ -1,0 +1,45 @@
+{
+  "name": "@yourusername/graph-editor",
+  "version": "1.0.0",
+  "description": "A lightweight, customizable node-based graph editor web component with zero dependencies",
+  "main": "graph-editor-unified.js",
+  "files": [
+    "graph-editor-unified.js",
+    "themes/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "demo": "python -m http.server 8000",
+    "demo:node": "npx serve ."
+  },
+  "keywords": [
+    "graph",
+    "node-editor",
+    "web-components",
+    "visual-programming",
+    "flow-editor",
+    "no-dependencies",
+    "vanilla-js",
+    "customizable",
+    "lightweight",
+    "graph-editor",
+    "node-graph",
+    "visual-editor",
+    "workflow",
+    "dataflow"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/graph-editor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/graph-editor/issues"
+  },
+  "homepage": "https://github.com/yourusername/graph-editor#readme",
+  "engines": {
+    "node": ">=12.0.0"
+  }
+}
