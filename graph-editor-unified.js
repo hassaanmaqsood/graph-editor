@@ -551,6 +551,8 @@ class GraphEditor extends HTMLElement {
         startX = e.clientX - this.canvasOffset.x;
         startY = e.clientY - this.canvasOffset.y;
         this.canvas.classList.add('dragging');
+        
+        // Clear selection when clicking on empty canvas
         this.clearSelection();
       }
     });
@@ -1412,11 +1414,21 @@ class GraphEditor extends HTMLElement {
     this.clearSelection();
     this.selectedElement = edgeData.element;
     edgeData.element.classList.add('selected');
+    
+    // Fire selection-changed event
+    this.dispatchEvent(new CustomEvent('selection-changed', { 
+      detail: { 
+        selected: edgeData.element, 
+        type: 'edge', 
+        edgeId: edgeData.element.dataset.edgeId 
+      } 
+    }));
   }
 
   // Selection Management
   /**
    * Clear all selections (nodes and edges)
+   * @fires GraphEditor#selection-changed
    */
   clearSelection() {
     // Clear all selected nodes
@@ -1430,6 +1442,11 @@ class GraphEditor extends HTMLElement {
     });
     
     this.selectedElement = null;
+    
+    // Fire selection-changed event
+    this.dispatchEvent(new CustomEvent('selection-changed', { 
+      detail: { selected: null, count: 0 } 
+    }));
   }
 
   /**
