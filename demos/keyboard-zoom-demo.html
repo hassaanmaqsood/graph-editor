@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graph Editor - Keyboard & Zoom Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #f5f6f8;
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 320px;
+      background: #111;
+      padding: 1.5rem;
+      overflow-y: auto;
+      border-right: 1px solid #333;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: #fff;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #999;
+      margin-bottom: 1.5rem;
+    }
+
+    .section {
+      margin-bottom: 2rem;
+    }
+
+    .section h2 {
+      font-size: 1rem;
+      color: #4ecdc4;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .setting {
+      margin-bottom: 1rem;
+      padding: 1rem;
+      background: #1a1a1a;
+      border-radius: 0.5rem;
+      border: 1px solid #333;
+    }
+
+    .setting label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .setting input[type="checkbox"] {
+      width: 1.2rem;
+      height: 1.2rem;
+      cursor: pointer;
+    }
+
+    .setting input[type="range"] {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+
+    .setting-label {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+      color: #ccc;
+    }
+
+    .setting-value {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 0.15rem 0.4rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .shortcuts {
+      list-style: none;
+    }
+
+    .shortcuts li {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      background: #1a1a1a;
+      border-radius: 0.375rem;
+      font-size: 0.85rem;
+    }
+
+    .key {
+      background: #333;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-family: monospace;
+      font-size: 0.8rem;
+      border: 1px solid #444;
+    }
+
+    main {
+      flex: 1;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .info-bar {
+      background: #111;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      display: flex;
+      gap: 2rem;
+      font-size: 0.9rem;
+    }
+
+    .info-item {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .info-label {
+      color: #999;
+    }
+
+    .info-value {
+      color: #4ecdc4;
+      font-weight: 600;
+    }
+
+    graph-editor {
+      flex: 1;
+      border-radius: 0.75rem;
+    }
+
+    .status {
+      padding: 0.5rem 1rem;
+      background: #1a1a1a;
+      border-radius: 0.375rem;
+      font-size: 0.8rem;
+      color: #4ecdc4;
+      border: 1px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <h1>⌨️ Controls Demo</h1>
+    <p class="subtitle">Keyboard shortcuts and zoom options</p>
+
+    <div class="section">
+      <h2>⚙️ Settings</h2>
+      
+      <div class="setting">
+        <label>
+          <input type="checkbox" id="toggle-keyboard" checked>
+          <span>Enable Keyboard Shortcuts</span>
+        </label>
+      </div>
+
+      <div class="setting">
+        <label>
+          <input type="checkbox" id="toggle-zoom-mode" checked>
+          <span>Zoom to Mouse Cursor</span>
+        </label>
+        <div class="status" style="margin-top: 0.5rem;">
+          When disabled, zooms to canvas center
+        </div>
+      </div>
+
+      <div class="setting">
+        <div class="setting-label">
+          Zoom Speed: <span class="setting-value" id="zoom-speed-value">0.1</span>
+        </div>
+        <input type="range" id="zoom-speed" min="0.05" max="0.3" step="0.05" value="0.1">
+      </div>
+
+      <div class="setting">
+        <div class="setting-label">
+          Grid Size: <span class="setting-value" id="grid-size-value">20</span>
+        </div>
+        <input type="range" id="grid-size" min="10" max="50" step="5" value="20">
+      </div>
+
+      <div class="setting">
+        <label>
+          <input type="checkbox" id="toggle-grid" checked>
+          <span>Show Grid</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>⌨️ Keyboard Shortcuts</h2>
+      <ul class="shortcuts">
+        <li>
+          <span>Delete Selected</span>
+          <span class="key">Del</span>
+        </li>
+        <li>
+          <span>Pan Canvas</span>
+          <span class="key">←↑↓→</span>
+        </li>
+        <li>
+          <span>Move Selected Node(s)</span>
+          <span class="key">←↑↓→</span>
+        </li>
+        <li>
+          <span>Fast Pan/Move</span>
+          <span class="key">Shift + Arrows</span>
+        </li>
+        <li>
+          <span>Tab Through Nodes</span>
+          <span class="key">Tab</span>
+        </li>
+        <li>
+          <span>Tab Backwards</span>
+          <span class="key">Shift+Tab</span>
+        </li>
+        <li>
+          <span>Multi-Select</span>
+          <span class="key">Shift+Click</span>
+        </li>
+        <li>
+          <span>Toggle Selection</span>
+          <span class="key">Ctrl+Click</span>
+        </li>
+        <li>
+          <span>Zoom In</span>
+          <span class="key">+</span>
+        </li>
+        <li>
+          <span>Zoom Out</span>
+          <span class="key">-</span>
+        </li>
+        <li>
+          <span>Reset Zoom</span>
+          <span class="key">0</span>
+        </li>
+        <li>
+          <span>Fit to View</span>
+          <span class="key">F</span>
+        </li>
+        <li>
+          <span>Clear Selection</span>
+          <span class="key">Esc</span>
+        </li>
+        <li>
+          <span>Select All</span>
+          <span class="key">Ctrl+A</span>
+        </li>
+      </ul>
+      <div class="status" style="margin-top: 1rem;">
+        💡 Arrow keys pan canvas normally, or move selected nodes when a node is selected
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="info-bar">
+      <div class="info-item">
+        <span class="info-label">Zoom:</span>
+        <span class="info-value" id="zoom-display">100%</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Position:</span>
+        <span class="info-value" id="pos-display">0, 0</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Nodes:</span>
+        <span class="info-value" id="nodes-display">0</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Selected:</span>
+        <span class="info-value" id="selected-display">None</span>
+      </div>
+    </div>
+
+    <graph-editor id="editor"></graph-editor>
+  </main>
+
+  <script src="graph-editor-unified.js"></script>
+  <script>
+    const editor = document.getElementById('editor');
+
+    // Initialize editor
+    editor.setConfig({
+      snapRadius: 30,
+      gridSize: 20,
+      showGrid: true,
+      edgeStyle: 'bezier',
+      theme: 'dark',
+      zoomSpeed: 0.1,
+      minZoom: 0.1,
+      maxZoom: 3,
+      zoomToMouse: true,
+      enableKeyboardShortcuts: true
+    });
+
+    // Create demo graph
+    function createDemoGraph() {
+      const nodes = [];
+      
+      for (let i = 0; i < 5; i++) {
+        const node = editor.addNode({
+          title: `Node ${i + 1}`,
+          position: {
+            x: 100 + i * 200,
+            y: 150 + Math.sin(i) * 100
+          },
+          inputs: [{ id: 'in', label: 'Input', type: 'any' }],
+          outputs: [{ id: 'out', label: 'Output', type: 'any' }],
+          color: `hsl(${i * 72}, 70%, 60%)`
+        });
+        nodes.push(node);
+      }
+
+      // Connect nodes
+      setTimeout(() => {
+        for (let i = 0; i < nodes.length - 1; i++) {
+          editor.addEdge(
+            nodes[i].dataset.nodeId,
+            nodes[i + 1].dataset.nodeId,
+            'out',
+            'in'
+          );
+        }
+        updateStats();
+      }, 100);
+    }
+
+    createDemoGraph();
+
+    // Update info display
+    function updateStats() {
+      document.getElementById('nodes-display').textContent = editor.getNodes().length;
+    }
+
+    editor.addEventListener('zoom-changed', (e) => {
+      const zoom = Math.round(e.detail.scale * 100);
+      document.getElementById('zoom-display').textContent = zoom + '%';
+    });
+
+    editor.addEventListener('selection-changed', (e) => {
+      const detail = e.detail;
+      if (detail.selected === 'multiple') {
+        document.getElementById('selected-display').textContent = `Multiple (${detail.count} nodes)`;
+      } else if (detail.selected) {
+        const type = detail.selected.classList.contains('node') ? 'Node' : 'Edge';
+        const id = detail.selected.dataset.nodeId || detail.selected.dataset.edgeId || '';
+        document.getElementById('selected-display').textContent = `${type} (${id.substring(0, 8)}...)`;
+      } else {
+        document.getElementById('selected-display').textContent = 'None';
+      }
+    });
+
+    editor.addEventListener('node-added', updateStats);
+    editor.addEventListener('node-removed', updateStats);
+
+    // Monitor canvas position
+    setInterval(() => {
+      const x = Math.round(editor.canvasOffset.x);
+      const y = Math.round(editor.canvasOffset.y);
+      document.getElementById('pos-display').textContent = `${x}, ${y}`;
+    }, 100);
+
+    // Settings controls
+    document.getElementById('toggle-keyboard').addEventListener('change', (e) => {
+      editor.setConfig({ enableKeyboardShortcuts: e.target.checked });
+    });
+
+    document.getElementById('toggle-zoom-mode').addEventListener('change', (e) => {
+      editor.setConfig({ zoomToMouse: e.target.checked });
+    });
+
+    document.getElementById('zoom-speed').addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      document.getElementById('zoom-speed-value').textContent = value.toFixed(2);
+      editor.setConfig({ zoomSpeed: value });
+    });
+
+    document.getElementById('grid-size').addEventListener('input', (e) => {
+      const value = parseInt(e.target.value);
+      document.getElementById('grid-size-value').textContent = value;
+      editor.setConfig({ gridSize: value });
+      if (editor.config.showGrid) {
+        editor.drawGrid();
+      }
+    });
+
+    document.getElementById('toggle-grid').addEventListener('change', (e) => {
+      editor.setConfig({ showGrid: e.target.checked });
+      if (e.target.checked) {
+        editor.drawGrid();
+      }
+    });
+  </script>
+</body>
+</html>

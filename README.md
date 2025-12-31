@@ -6,7 +6,7 @@
 
 A lightweight, powerful, and fully customizable node-based graph editor built with vanilla JavaScript Web Components. Zero dependencies, complete control.
 
-![Graph Editor Demo](https://via.placeholder.com/800x400/222/fff?text=Graph+Editor+Demo)
+![Graph Editor Demo](https://raw.githubusercontent.com/hassaanmaqsood/graph-editor/main/demos/demo_screenshot.png)
 
 ## ✨ Features
 

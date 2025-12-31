@@ -1,0 +1,103 @@
+/* Cyberpunk Theme for Graph Editor */
+
+:host {
+  /* Colors */
+  --background-color: #0d0221;
+  --grid-color: rgba(255, 0, 110, 0.2);
+  --node-bg: #1a0b2e;
+  --node-text: #00fff5;
+  --edge-color: #ff006e;
+  --edge-hover-color: #ffbe0b;
+  --port-color: #00fff5;
+  --selected-color: #ffbe0b;
+  
+  /* Sizes */
+  --edge-width: 3;
+  --port-size: 1.2rem;
+  --node-min-width: 220px;
+  
+  /* Effects */
+  --node-border-radius: 8px;
+  --node-shadow: 0 0 20px rgba(255, 0, 110, 0.3), 
+                 0 0 40px rgba(255, 0, 110, 0.1);
+  --port-shadow: 0 0 15px currentColor;
+  --port-hover-scale: 1.3;
+  
+  /* Typography */
+  --node-title-weight: 700;
+  --node-title-size: 0.95rem;
+}
+
+/* Custom node styling */
+.node {
+  position: relative;
+}
+
+.node::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #ff006e, #00fff5, #ffbe0b);
+  border-radius: calc(var(--node-border-radius) + 2px);
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s;
+}
+
+.node:hover::before {
+  opacity: 0.3;
+}
+
+.node.selected::before {
+  opacity: 0.6;
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Enhanced edge styling */
+.edge {
+  filter: drop-shadow(0 0 4px var(--edge-color));
+}
+
+.edge.selected {
+  filter: drop-shadow(0 0 8px var(--selected-color));
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Port enhancements */
+.port {
+  box-shadow: 0 0 10px currentColor;
+}
+
+.port:hover {
+  animation: portGlow 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes portGlow {
+  from { box-shadow: 0 0 10px currentColor; }
+  to { box-shadow: 0 0 20px currentColor; }
+}
+
+/* Title styling */
+.node .title {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 10px rgba(0, 255, 245, 0.5);
+}
+
+/* Grid enhancement */
+.grid-canvas {
+  opacity: 0.3;
+}

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unified Graph Editor - Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #000;
+      color: #f5f6f8;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      background: #111;
+      padding: 1rem;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: #474bff;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: #5a5eff;
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.danger {
+      background: #ff6b6b;
+    }
+
+    button.danger:hover {
+      background: #ff8080;
+    }
+
+    button.secondary {
+      background: #333;
+    }
+
+    button.secondary:hover {
+      background: #444;
+    }
+
+    main {
+      flex: 1;
+      padding: 1rem;
+      overflow: hidden;
+    }
+
+    graph-editor {
+      width: 100%;
+      height: 100%;
+      border-radius: 0.75rem;
+    }
+
+    .stats {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      background: rgba(17, 17, 17, 0.95);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      backdrop-filter: blur(10px);
+      border: 1px solid #333;
+    }
+
+    .stats div {
+      display: flex;
+      justify-content: space-between;
+      gap: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .stats span:last-child {
+      font-weight: 600;
+      color: #474bff;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎨 Unified Graph Editor</h1>
+    <div class="toolbar">
+      <button id="add-node">+ Add Node</button>
+      <button id="add-math">➕ Math</button>
+      <button id="add-display">📺 Display</button>
+      <button class="secondary" id="center">⊙ Center</button>
+      <button class="secondary" id="fit">⬚ Fit All</button>
+      <button class="secondary" id="export">💾 Export</button>
+      <button class="secondary" id="import">📁 Import</button>
+      <button class="danger" id="clear">🗑️ Clear</button>
+    </div>
+  </header>
+
+  <main>
+    <graph-editor id="editor"></graph-editor>
+  </main>
+
+  <div class="stats">
+    <div>
+      <span>Nodes:</span>
+      <span id="node-count">0</span>
+    </div>
+    <div>
+      <span>Edges:</span>
+      <span id="edge-count">0</span>
+    </div>
+    <div>
+      <span>Zoom:</span>
+      <span id="zoom">100%</span>
+    </div>
+  </div>
+
+  <script src="graph-editor-unified.js"></script>
+  <script>
+    const editor = document.getElementById('editor');
+    let nodeCounter = 1;
+
+    // Configure editor
+    editor.setConfig({
+      snapRadius: 30,
+      gridSize: 20,
+      showGrid: true,
+      edgeStyle: 'bezier',
+      theme: 'dark'
+    });
+
+    // Update stats
+    function updateStats() {
+      document.getElementById('node-count').textContent = editor.getNodes().length;
+      document.getElementById('edge-count').textContent = editor.getEdges().length;
+    }
+
+    // Event listeners
+    editor.addEventListener('node-added', updateStats);
+    editor.addEventListener('node-removed', updateStats);
+    editor.addEventListener('edge-added', updateStats);
+    editor.addEventListener('edge-removed', updateStats);
+    
+    editor.addEventListener('zoom-changed', (e) => {
+      document.getElementById('zoom').textContent = Math.round(e.detail.scale * 100) + '%';
+    });
+
+    // Button handlers
+    document.getElementById('add-node').addEventListener('click', () => {
+      const center = editor.getCenter();
+      editor.addNode({
+        title: `Node ${nodeCounter++}`,
+        position: {
+          x: center.x - 100 + (Math.random() - 0.5) * 50,
+          y: center.y - 50 + (Math.random() - 0.5) * 50
+        },
+        inputs: [{ id: 'in', label: 'Input', type: 'any' }],
+        outputs: [{ id: 'out', label: 'Output', type: 'any' }],
+        color: '#474bff'
+      });
+    });
+
+    document.getElementById('add-math').addEventListener('click', () => {
+      const center = editor.getCenter();
+      const operations = ['+', '-', '×', '÷'];
+      const op = operations[Math.floor(Math.random() * operations.length)];
+      
+      editor.addNode({
+        title: 'Math',
+        position: {
+          x: center.x - 100 + (Math.random() - 0.5) * 50,
+          y: center.y - 50 + (Math.random() - 0.5) * 50
+        },
+        inputs: [
+          { id: 'a', label: 'A', type: 'number' },
+          { id: 'b', label: 'B', type: 'number' }
+        ],
+        outputs: [{ id: 'result', label: 'Result', type: 'number' }],
+        color: '#ff6b6b',
+        content: `<div style="padding: 1.5rem; text-align: center; font-size: 2rem; font-weight: bold;">${op}</div>`
+      });
+    });
+
+    document.getElementById('add-display').addEventListener('click', () => {
+      const center = editor.getCenter();
+      
+      editor.addNode({
+        title: 'Display',
+        position: {
+          x: center.x - 100 + (Math.random() - 0.5) * 50,
+          y: center.y - 50 + (Math.random() - 0.5) * 50
+        },
+        inputs: [{ id: 'value', label: 'Value', type: 'any' }],
+        outputs: [],
+        color: '#9b59b6',
+        content: `
+          <div style="
+            width: 100%; 
+            height: 100%; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 2rem;
+            border-radius: 15px;
+          ">
+            0
+          </div>
+        `
+      });
+    });
+
+    document.getElementById('center').addEventListener('click', () => {
+      editor.centerView();
+    });
+
+    document.getElementById('fit').addEventListener('click', () => {
+      editor.fitToView();
+    });
+
+    document.getElementById('clear').addEventListener('click', () => {
+      if (confirm('Clear all nodes and edges?')) {
+        editor.clearGraph();
+      }
+    });
+
+    document.getElementById('export').addEventListener('click', () => {
+      const data = editor.exportGraph();
+      const json = JSON.stringify(data, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'graph.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('import').addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = JSON.parse(event.target.result);
+            editor.importGraph(data);
+          } catch (error) {
+            alert('Error importing: ' + error.message);
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    });
+
+    // Create demo graph
+    setTimeout(() => {
+      const node1 = editor.addNode({
+        id: 'input1',
+        title: 'Input A',
+        position: { x: 100, y: 200 },
+        inputs: [],
+        outputs: [{ id: 'out', label: 'Value', type: 'number' }],
+        color: '#4ecdc4'
+      });
+
+      const node2 = editor.addNode({
+        id: 'input2',
+        title: 'Input B',
+        position: { x: 100, y: 350 },
+        inputs: [],
+        outputs: [{ id: 'out', label: 'Value', type: 'number' }],
+        color: '#4ecdc4'
+      });
+
+      const mathNode = editor.addNode({
+        id: 'math',
+        title: 'Add',
+        position: { x: 400, y: 275 },
+        inputs: [
+          { id: 'a', label: 'A', type: 'number' },
+          { id: 'b', label: 'B', type: 'number' }
+        ],
+        outputs: [{ id: 'result', label: 'Result', type: 'number' }],
+        color: '#ff6b6b',
+        content: '<div style="padding: 1.5rem; text-align: center; font-size: 2rem; font-weight: bold;">+</div>'
+      });
+
+      const display = editor.addNode({
+        id: 'output',
+        title: 'Result',
+        position: { x: 700, y: 275 },
+        inputs: [{ id: 'value', label: 'Value', type: 'any' }],
+        outputs: [],
+        color: '#9b59b6',
+        content: `
+          <div style="
+            width: 100%; 
+            height: 100%; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 2rem;
+            border-radius: 15px;
+          ">
+            42
+          </div>
+        `
+      });
+
+      // Connect nodes
+      setTimeout(() => {
+        editor.addEdge('input1', 'math', 'out', 'a');
+        editor.addEdge('input2', 'math', 'out', 'b');
+        editor.addEdge('math', 'output', 'result', 'value');
+        updateStats();
+      }, 100);
+    }, 100);
+  </script>
+</body>
+</html>

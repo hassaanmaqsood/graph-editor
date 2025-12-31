@@ -1,0 +1,90 @@
+/* Minimal Light Theme for Graph Editor */
+
+:host {
+  /* Colors */
+  --background-color: #fafafa;
+  --grid-color: #e5e7eb;
+  --node-bg: #ffffff;
+  --node-text: #1f2937;
+  --edge-color: #6b7280;
+  --edge-hover-color: #3b82f6;
+  --port-color: #3b82f6;
+  --selected-color: #f59e0b;
+  
+  /* Sizes */
+  --edge-width: 2;
+  --port-size: 0.875rem;
+  --node-min-width: 180px;
+  
+  /* Effects */
+  --node-border-radius: 12px;
+  --node-shadow: 0 1px 3px rgba(0, 0, 0, 0.1),
+                 0 1px 2px rgba(0, 0, 0, 0.06);
+  --port-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  --port-hover-scale: 1.15;
+  
+  /* Typography */
+  --node-title-weight: 600;
+  --node-title-size: 0.875rem;
+  
+  /* Borders */
+  --node-border-width: 1px;
+}
+
+/* Node enhancements */
+.node > * {
+  border: 1px solid #e5e7eb;
+}
+
+.node:hover > * {
+  border-color: #d1d5db;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05),
+              0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.node.selected > * {
+  border-color: var(--selected-color);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+/* Edge styling */
+.edge {
+  transition: stroke 0.2s, stroke-width 0.2s;
+}
+
+.edge:hover {
+  stroke: #4b5563;
+  stroke-width: 3;
+}
+
+/* Port styling */
+.port {
+  border: 2px solid #ffffff;
+  transition: all 0.2s ease;
+}
+
+.port:hover {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+.port.hover {
+  background-color: var(--edge-hover-color);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
+}
+
+/* Title styling */
+.node .title {
+  color: #374151;
+  font-weight: 600;
+}
+
+/* Clean grid */
+.grid-canvas {
+  opacity: 0.4;
+}
+
+/* Display area */
+.node .display {
+  border-bottom: 1px solid #e5e7eb;
+}

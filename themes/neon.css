@@ -1,0 +1,151 @@
+/* Neon Glow Theme for Graph Editor */
+
+:host {
+  /* Colors */
+  --background-color: #000000;
+  --grid-color: #1a1a1a;
+  --node-bg: #0a0a0a;
+  --node-text: #ffffff;
+  --edge-color: #00ffff;
+  --edge-hover-color: #ff00ff;
+  --port-color: #00ffff;
+  --selected-color: #ff00ff;
+  
+  /* Sizes */
+  --edge-width: 3;
+  --port-size: 1.5rem;
+  --node-min-width: 200px;
+  
+  /* Effects */
+  --node-border-radius: 20px;
+  --node-shadow: 0 0 30px rgba(0, 255, 255, 0.4),
+                 0 0 60px rgba(0, 255, 255, 0.2);
+  --port-shadow: 0 0 20px currentColor,
+                 0 0 40px currentColor;
+  --port-hover-scale: 1.4;
+  
+  /* Typography */
+  --node-title-weight: 700;
+  --node-title-size: 1.1rem;
+}
+
+/* Neon node effects */
+.node > * {
+  border: 2px solid #00ffff;
+  background: rgba(10, 10, 10, 0.9);
+  box-shadow: 
+    inset 0 0 20px rgba(0, 255, 255, 0.1),
+    0 0 30px rgba(0, 255, 255, 0.4),
+    0 0 60px rgba(0, 255, 255, 0.2);
+}
+
+.node.selected > * {
+  border-color: #ff00ff;
+  box-shadow: 
+    inset 0 0 20px rgba(255, 0, 255, 0.1),
+    0 0 30px rgba(255, 0, 255, 0.6),
+    0 0 60px rgba(255, 0, 255, 0.3);
+  animation: neonPulse 2s ease-in-out infinite;
+}
+
+@keyframes neonPulse {
+  0%, 100% {
+    box-shadow: 
+      inset 0 0 20px rgba(255, 0, 255, 0.1),
+      0 0 30px rgba(255, 0, 255, 0.6),
+      0 0 60px rgba(255, 0, 255, 0.3);
+  }
+  50% {
+    box-shadow: 
+      inset 0 0 30px rgba(255, 0, 255, 0.2),
+      0 0 40px rgba(255, 0, 255, 0.8),
+      0 0 80px rgba(255, 0, 255, 0.4);
+  }
+}
+
+/* Neon edges */
+.edge {
+  filter: drop-shadow(0 0 4px var(--edge-color))
+          drop-shadow(0 0 8px var(--edge-color));
+  animation: edgeGlow 3s ease-in-out infinite;
+}
+
+@keyframes edgeGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px var(--edge-color))
+            drop-shadow(0 0 8px var(--edge-color));
+  }
+  50% {
+    filter: drop-shadow(0 0 6px var(--edge-color))
+            drop-shadow(0 0 12px var(--edge-color));
+  }
+}
+
+.edge.selected {
+  filter: drop-shadow(0 0 6px var(--selected-color))
+          drop-shadow(0 0 12px var(--selected-color))
+          drop-shadow(0 0 20px var(--selected-color));
+}
+
+/* Neon ports */
+.port {
+  box-shadow: 
+    0 0 10px currentColor,
+    0 0 20px currentColor,
+    0 0 30px currentColor,
+    inset 0 0 10px currentColor;
+}
+
+.port:hover {
+  animation: portNeon 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes portNeon {
+  from {
+    box-shadow: 
+      0 0 10px currentColor,
+      0 0 20px currentColor,
+      0 0 30px currentColor;
+  }
+  to {
+    box-shadow: 
+      0 0 15px currentColor,
+      0 0 30px currentColor,
+      0 0 45px currentColor;
+  }
+}
+
+.port.hover {
+  background-color: var(--edge-hover-color);
+  box-shadow: 
+    0 0 15px var(--edge-hover-color),
+    0 0 30px var(--edge-hover-color),
+    0 0 45px var(--edge-hover-color);
+}
+
+/* Neon text */
+.node .title {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 
+    0 0 5px rgba(0, 255, 255, 0.8),
+    0 0 10px rgba(0, 255, 255, 0.6),
+    0 0 15px rgba(0, 255, 255, 0.4);
+  animation: textFlicker 4s ease-in-out infinite;
+}
+
+@keyframes textFlicker {
+  0%, 100% { opacity: 1; }
+  94%, 96% { opacity: 0.8; }
+  95% { opacity: 1; }
+}
+
+/* Grid */
+.grid-canvas {
+  opacity: 0.15;
+}
+
+/* Canvas glow effect */
+.graph-editor {
+  background: radial-gradient(circle at 50% 50%, #001a1a 0%, #000000 100%);
+}
