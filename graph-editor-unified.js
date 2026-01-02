@@ -3,7 +3,7 @@
  * A lightweight, customizable node-based graph editor with zero dependencies.
  * 
  * @version 1.0.0
- * @author Your Name
+ * @author Hassaan Maqsood
  * @license MIT
  * 
  * ============================================================================
@@ -130,29 +130,29 @@ class GraphEditor extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
-    
+
     // State
     /** @type {Map<string, {element: HTMLElement, data: Object}>} */
     this.nodes = new Map();
-    
+
     /** @type {Map<string, {sourceNode: string, targetNode: string, sourcePort: string, targetPort: string, element: SVGPathElement}>} */
     this.edges = new Map();
-    
+
     /** @type {HTMLElement|SVGPathElement|null} */
     this.selectedElement = null;
-    
+
     /** @type {Object|null} */
     this.currentEdge = null;
-    
+
     /** @type {{x: number, y: number}} */
     this.canvasOffset = { x: 0, y: 0 };
-    
+
     /** @type {number} */
     this.scale = 1;
-    
+
     /** @type {number} */
     this.nodeIdCounter = 0;
-    
+
     // Configuration
     /** @type {Object} */
     this.config = {
@@ -176,10 +176,10 @@ class GraphEditor extends HTMLElement {
   connectedCallback() {
     this.render();
     this.setupEventListeners();
-    
+
     // Apply custom stylesheet if provided
     this.applyCustomStylesheet();
-    
+
     this.dispatchEvent(new CustomEvent('editor-ready', { detail: this }));
   }
 
@@ -195,7 +195,7 @@ class GraphEditor extends HTMLElement {
       styleElement.textContent = styleSlot.textContent;
       this.shadowRoot.appendChild(styleElement);
     }
-    
+
     // Check for external stylesheet link
     const linkSlot = this.querySelector('link[slot="stylesheet"]');
     if (linkSlot) {
@@ -221,12 +221,12 @@ class GraphEditor extends HTMLElement {
         <slot name="library"></slot>
       </div>
     `;
-    
+
     this.canvas = this.shadowRoot.querySelector('.canvas');
     this.nodesLayer = this.shadowRoot.querySelector('.nodes-layer');
     this.edgesLayer = this.shadowRoot.querySelector('.edges-layer');
     this.gridCanvas = this.shadowRoot.querySelector('.grid-canvas');
-    
+
     if (this.config.showGrid) {
       this.drawGrid();
     }
@@ -507,21 +507,21 @@ class GraphEditor extends HTMLElement {
   drawGrid() {
     const ctx = this.gridCanvas.getContext('2d');
     const { width, height } = this.gridCanvas.getBoundingClientRect();
-    
+
     this.gridCanvas.width = width;
     this.gridCanvas.height = height;
-    
+
     // Get grid color from CSS variable
-    const gridColor = getComputedStyle(this).getPropertyValue('--grid-color').trim() || 
-                     (this.config.theme === 'dark' ? '#333' : '#e0e0e0');
-    
+    const gridColor = getComputedStyle(this).getPropertyValue('--grid-color').trim() ||
+      (this.config.theme === 'dark' ? '#333' : '#e0e0e0');
+
     ctx.strokeStyle = gridColor;
     ctx.lineWidth = 1;
-    
+
     const gridSize = this.config.gridSize;
     const offsetX = this.canvasOffset.x % gridSize;
     const offsetY = this.canvasOffset.y % gridSize;
-    
+
     // Vertical lines
     for (let x = offsetX; x < width; x += gridSize) {
       ctx.beginPath();
@@ -529,7 +529,7 @@ class GraphEditor extends HTMLElement {
       ctx.lineTo(x, height);
       ctx.stroke();
     }
-    
+
     // Horizontal lines
     for (let y = offsetY; y < height; y += gridSize) {
       ctx.beginPath();
@@ -543,7 +543,7 @@ class GraphEditor extends HTMLElement {
     // Canvas panning
     let isPanning = false;
     let startX, startY;
-    
+
     this.canvas.addEventListener('pointerdown', (e) => {
       // Only start panning if clicking on canvas or nodes layer (not on a node)
       if (e.target === this.canvas || e.target === this.nodesLayer) {
@@ -551,7 +551,7 @@ class GraphEditor extends HTMLElement {
         startX = e.clientX - this.canvasOffset.x;
         startY = e.clientY - this.canvasOffset.y;
         this.canvas.classList.add('dragging');
-        
+
         // Clear selection when clicking on empty canvas
         this.clearSelection();
       }
@@ -566,7 +566,7 @@ class GraphEditor extends HTMLElement {
           this.drawGrid();
         }
       }
-      
+
       // Handle edge creation
       if (this.currentEdge) {
         this.updateTemporaryEdge(e);
@@ -578,7 +578,7 @@ class GraphEditor extends HTMLElement {
         isPanning = false;
         this.canvas.classList.remove('dragging');
       }
-      
+
       if (this.currentEdge) {
         this.finalizeEdge(e);
       }
@@ -588,10 +588,10 @@ class GraphEditor extends HTMLElement {
     const canvasContainer = this.shadowRoot.querySelector('.canvas-container');
     canvasContainer.addEventListener('wheel', (e) => {
       e.preventDefault();
-      
+
       const delta = e.deltaY > 0 ? -this.config.zoomSpeed : this.config.zoomSpeed;
       const newScale = this.scale * (1 + delta);
-      
+
       if (this.config.zoomToMouse) {
         // Zoom to mouse cursor position
         this.zoomToPoint(newScale, e.clientX, e.clientY);
@@ -613,22 +613,42 @@ class GraphEditor extends HTMLElement {
    */
   setupKeyboardShortcuts() {
     document.addEventListener('keydown', (e) => {
-      // Only handle shortcuts if not typing in input
-      if (e.target.tagName === 'INPUT' || 
-          e.target.tagName === 'TEXTAREA' || 
-          e.target.isContentEditable) {
+      // Only handle shortcuts if not typing in input/textarea/contenteditable
+      // Check both document and shadow DOM
+      const activeElement = document.activeElement;
+      const shadowActiveElement = this.shadowRoot.activeElement;
+
+      // Don't handle shortcuts if typing in any input field
+      if (activeElement && (
+        activeElement.tagName === 'INPUT' ||
+        activeElement.tagName === 'TEXTAREA' ||
+        activeElement.isContentEditable)) {
+        return;
+      }
+
+      // Also check shadow DOM for inputs within nodes
+      if (shadowActiveElement && (
+        shadowActiveElement.tagName === 'INPUT' ||
+        shadowActiveElement.tagName === 'TEXTAREA' ||
+        shadowActiveElement.isContentEditable)) {
+        return;
+      }
+
+      // Check if any input within the editor has focus
+      const focusedInput = this.shadowRoot.querySelector('input:focus, textarea:focus, [contenteditable="true"]:focus');
+      if (focusedInput) {
         return;
       }
 
       // Check if any node is selected for node-specific actions
-      const hasNodeSelection = this.selectedElement && 
-                               this.selectedElement.classList.contains('node');
+      const hasNodeSelection = this.selectedElement &&
+        this.selectedElement.classList.contains('node');
       const hasMultipleSelection = this.shadowRoot.querySelectorAll('.node.selected').length > 1;
 
       // Pan speed - faster with shift
       const panSpeed = e.shiftKey ? 50 : 20;
 
-      switch(e.key) {
+      switch (e.key) {
         // Delete selected element(s)
         case 'Delete':
         case 'Backspace':
@@ -765,8 +785,8 @@ class GraphEditor extends HTMLElement {
       nodeObj.element.classList.add('selected');
     });
     this.selectedElement = this.shadowRoot.querySelector('.node.selected');
-    this.dispatchEvent(new CustomEvent('selection-changed', { 
-      detail: { selected: 'multiple', count: this.nodes.size } 
+    this.dispatchEvent(new CustomEvent('selection-changed', {
+      detail: { selected: 'multiple', count: this.nodes.size }
     }));
   }
 
@@ -785,10 +805,10 @@ class GraphEditor extends HTMLElement {
 
     const nextIndex = (currentIndex + 1) % nodesArray.length;
     const nextNode = nodesArray[nextIndex];
-    
+
     this.clearSelection();
     this.selectNode(nextNode);
-    
+
     // Scroll node into view
     this.scrollNodeIntoView(nextNode);
   }
@@ -808,10 +828,10 @@ class GraphEditor extends HTMLElement {
 
     const prevIndex = currentIndex <= 0 ? nodesArray.length - 1 : currentIndex - 1;
     const prevNode = nodesArray[prevIndex];
-    
+
     this.clearSelection();
     this.selectNode(prevNode);
-    
+
     // Scroll node into view
     this.scrollNodeIntoView(prevNode);
   }
@@ -824,20 +844,20 @@ class GraphEditor extends HTMLElement {
   scrollNodeIntoView(node) {
     const nodeRect = node.getBoundingClientRect();
     const editorRect = this.getBoundingClientRect();
-    
+
     const nodeCenterX = nodeRect.left + nodeRect.width / 2;
     const nodeCenterY = nodeRect.top + nodeRect.height / 2;
-    
+
     const editorCenterX = editorRect.left + editorRect.width / 2;
     const editorCenterY = editorRect.top + editorRect.height / 2;
-    
+
     // Check if node is outside viewport
     const margin = 50;
-    if (nodeCenterX < editorRect.left + margin || 
-        nodeCenterX > editorRect.right - margin ||
-        nodeCenterY < editorRect.top + margin || 
-        nodeCenterY > editorRect.bottom - margin) {
-      
+    if (nodeCenterX < editorRect.left + margin ||
+      nodeCenterX > editorRect.right - margin ||
+      nodeCenterY < editorRect.top + margin ||
+      nodeCenterY > editorRect.bottom - margin) {
+
       // Pan to center the node
       const pos = this.getNodePosition(node);
       this.canvasOffset.x = editorRect.width / 2 - (pos.x + nodeRect.width / 2) * this.scale;
@@ -877,30 +897,30 @@ class GraphEditor extends HTMLElement {
    */
   zoomToPoint(newScale, clientX, clientY) {
     newScale = Math.max(this.config.minZoom, Math.min(this.config.maxZoom, newScale));
-    
+
     const rect = this.getBoundingClientRect();
-    
+
     // Mouse position relative to editor
     const mouseX = clientX - rect.left;
     const mouseY = clientY - rect.top;
-    
+
     // Canvas position under mouse before zoom
     const canvasX = (mouseX - this.canvasOffset.x) / this.scale;
     const canvasY = (mouseY - this.canvasOffset.y) / this.scale;
-    
+
     // Update scale
     const oldScale = this.scale;
     this.scale = newScale;
-    
+
     // Adjust offset to keep point under mouse
     this.canvasOffset.x = mouseX - canvasX * this.scale;
     this.canvasOffset.y = mouseY - canvasY * this.scale;
-    
+
     this.updateCanvasPosition();
     if (this.config.showGrid) {
       this.drawGrid();
     }
-    
+
     this.dispatchEvent(new CustomEvent('zoom-changed', { detail: { scale: this.scale } }));
   }
 
@@ -935,23 +955,23 @@ class GraphEditor extends HTMLElement {
   addNode(nodeData) {
     const nodeId = nodeData.id || this.generateId('node');
     const position = nodeData.position || this.getCenter();
-    
+
     const nodeElement = this.createNodeElement(nodeId, {
       ...nodeData,
       position
     });
-    
+
     this.nodes.set(nodeId, {
       element: nodeElement,
       data: nodeData
     });
-    
+
     this.nodesLayer.appendChild(nodeElement);
-    
-    this.dispatchEvent(new CustomEvent('node-added', { 
-      detail: { nodeId, node: nodeElement, data: nodeData } 
+
+    this.dispatchEvent(new CustomEvent('node-added', {
+      detail: { nodeId, node: nodeElement, data: nodeData }
     }));
-    
+
     return nodeElement;
   }
 
@@ -961,17 +981,17 @@ class GraphEditor extends HTMLElement {
     node.dataset.nodeId = nodeId;
     node.style.left = `${data.position.x}px`;
     node.style.top = `${data.position.y}px`;
-    
+
     // Apply custom color
     if (data.color) {
       node.style.setProperty('--port-color', data.color);
     }
-    
+
     const inputs = data.inputs || [];
     const outputs = data.outputs || [];
-    
+
     node.innerHTML = `
-      ${data.content ? `<div class="display">${data.content}</div>` : ''}
+      <div class="display">${data.content || ''}</div>
       <div class="block">
         <div class="ports inputs">
           ${inputs.map(input => `
@@ -994,9 +1014,9 @@ class GraphEditor extends HTMLElement {
         </div>
       </div>
     `;
-    
+
     this.setupNodeEventListeners(node);
-    
+
     return node;
   }
 
@@ -1005,13 +1025,13 @@ class GraphEditor extends HTMLElement {
     let isDraggingNode = false;
     let dragStartX, dragStartY;
     let nodeStartX, nodeStartY;
-    
+
     // Node selection and dragging
     block.addEventListener('pointerdown', (e) => {
       if (e.target.classList.contains('port')) return;
-      
+
       e.stopPropagation(); // Prevent canvas panning
-      
+
       // Multi-select with Shift or Ctrl/Cmd
       if (e.shiftKey || e.ctrlKey || e.metaKey) {
         // Toggle selection for this node
@@ -1025,24 +1045,24 @@ class GraphEditor extends HTMLElement {
           node.classList.add('selected');
           this.selectedElement = node;
         }
-        
+
         const selectedCount = this.shadowRoot.querySelectorAll('.node.selected').length;
-        this.dispatchEvent(new CustomEvent('selection-changed', { 
-          detail: { selected: selectedCount > 1 ? 'multiple' : node, count: selectedCount } 
+        this.dispatchEvent(new CustomEvent('selection-changed', {
+          detail: { selected: selectedCount > 1 ? 'multiple' : node, count: selectedCount }
         }));
         return; // Don't start drag on multi-select click
       }
-      
+
       // Check if this node is already part of a multi-selection
       const selectedNodes = this.shadowRoot.querySelectorAll('.node.selected');
       const isPartOfMultiSelect = selectedNodes.length > 1 && node.classList.contains('selected');
-      
+
       if (!isPartOfMultiSelect) {
         // Single select - clear others
         this.clearSelection();
         this.selectNode(node);
       }
-      
+
       isDraggingNode = true;
       dragStartX = e.clientX;
       dragStartY = e.clientY;
@@ -1052,15 +1072,15 @@ class GraphEditor extends HTMLElement {
 
     const onMove = (e) => {
       if (!isDraggingNode) return;
-      
+
       e.stopPropagation(); // Prevent canvas panning during node drag
-      
+
       const dx = (e.clientX - dragStartX) / this.scale;
       const dy = (e.clientY - dragStartY) / this.scale;
-      
+
       // Check if multiple nodes are selected
       const selectedNodes = this.shadowRoot.querySelectorAll('.node.selected');
-      
+
       if (selectedNodes.length > 1) {
         // Move all selected nodes
         selectedNodes.forEach(selectedNode => {
@@ -1082,15 +1102,15 @@ class GraphEditor extends HTMLElement {
       if (isDraggingNode) {
         e.stopPropagation(); // Prevent canvas from handling this
         isDraggingNode = false;
-        
+
         // Clear drag start positions
         this.shadowRoot.querySelectorAll('.node.selected').forEach(n => {
           delete n.dataset.dragStartX;
           delete n.dataset.dragStartY;
         });
-        
+
         this.dispatchEvent(new CustomEvent('node-moved', {
-          detail: { 
+          detail: {
             nodeId: node.dataset.nodeId,
             position: this.getNodePosition(node)
           }
@@ -1110,17 +1130,17 @@ class GraphEditor extends HTMLElement {
 
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', onUp);
-    
+
     // Port connection handling
     node.querySelectorAll('.port').forEach(port => {
       port.addEventListener('pointerdown', (e) => {
         e.stopPropagation();
         e.preventDefault();
-        
+
         const portId = port.dataset.portId;
         const portType = port.classList.contains('output') ? 'output' : 'input';
         const position = this.getPortPosition(port);
-        
+
         this.startEdgeCreation(node, port, portId, portType, position);
       });
     });
@@ -1136,7 +1156,7 @@ class GraphEditor extends HTMLElement {
   getPortPosition(port) {
     const portRect = port.getBoundingClientRect();
     const editorRect = this.getBoundingClientRect();
-    
+
     return {
       x: (portRect.left + portRect.width / 2 - editorRect.left - this.canvasOffset.x) / this.scale,
       y: (portRect.top + portRect.height / 2 - editorRect.top - this.canvasOffset.y) / this.scale
@@ -1151,19 +1171,19 @@ class GraphEditor extends HTMLElement {
   removeNode(nodeId) {
     const nodeObj = this.nodes.get(nodeId);
     if (!nodeObj) return;
-    
+
     // Remove connected edges
     const connectedEdges = Array.from(this.edges.entries())
-      .filter(([_, edge]) => 
+      .filter(([_, edge]) =>
         edge.sourceNode === nodeId || edge.targetNode === nodeId
       );
-    
+
     connectedEdges.forEach(([edgeId]) => this.removeEdge(edgeId));
-    
+
     // Remove node
     nodeObj.element.remove();
     this.nodes.delete(nodeId);
-    
+
     this.dispatchEvent(new CustomEvent('node-removed', { detail: { nodeId } }));
   }
 
@@ -1176,8 +1196,8 @@ class GraphEditor extends HTMLElement {
     this.clearSelection();
     this.selectedElement = node;
     node.classList.add('selected');
-    this.dispatchEvent(new CustomEvent('selection-changed', { 
-      detail: { selected: node, nodeId: node.dataset.nodeId } 
+    this.dispatchEvent(new CustomEvent('selection-changed', {
+      detail: { selected: node, nodeId: node.dataset.nodeId }
     }));
   }
 
@@ -1191,7 +1211,7 @@ class GraphEditor extends HTMLElement {
       startPosition: position,
       element: this.createTemporaryEdge()
     };
-    
+
     this.edgesLayer.appendChild(this.currentEdge.element);
   }
 
@@ -1203,25 +1223,25 @@ class GraphEditor extends HTMLElement {
 
   updateTemporaryEdge(event) {
     if (!this.currentEdge) return;
-    
+
     const rect = this.getBoundingClientRect();
     const endPos = {
       x: (event.clientX - rect.left - this.canvasOffset.x) / this.scale,
       y: (event.clientY - rect.top - this.canvasOffset.y) / this.scale
     };
-    
+
     const pathData = this.calculateEdgePath(this.currentEdge.startPosition, endPos);
     this.currentEdge.element.setAttribute('d', pathData);
-    
+
     // Update port hover states
     const allPorts = this.shadowRoot.querySelectorAll('.port');
     allPorts.forEach(port => {
       if (port === this.currentEdge.sourcePort) return;
-      
+
       const portRect = port.getBoundingClientRect();
       const isHovering = event.clientX >= portRect.left && event.clientX <= portRect.right &&
-                        event.clientY >= portRect.top && event.clientY <= portRect.bottom;
-      
+        event.clientY >= portRect.top && event.clientY <= portRect.bottom;
+
       if (isHovering) {
         port.classList.add('hover');
       } else {
@@ -1232,42 +1252,42 @@ class GraphEditor extends HTMLElement {
 
   finalizeEdge(event) {
     if (!this.currentEdge) return;
-    
+
     // Find port under pointer - need to check inside shadow DOM
     let targetPort = null;
-    
+
     // Get all ports and check if pointer is over them
     const allPorts = this.shadowRoot.querySelectorAll('.port');
-    
+
     for (const port of allPorts) {
       if (port === this.currentEdge.sourcePort) continue;
-      
+
       const rect = port.getBoundingClientRect();
       if (event.clientX >= rect.left && event.clientX <= rect.right &&
-          event.clientY >= rect.top && event.clientY <= rect.bottom) {
+        event.clientY >= rect.top && event.clientY <= rect.bottom) {
         targetPort = port;
         break;
       }
     }
-    
+
     if (targetPort) {
       const targetNode = targetPort.closest('.node');
       const targetPortId = targetPort.dataset.portId;
       const targetPortType = targetPort.classList.contains('output') ? 'output' : 'input';
-      
+
       // Validate connection
       const sourceNodeId = this.currentEdge.sourceNode.dataset.nodeId;
       const targetNodeId = targetNode.dataset.nodeId;
-      
+
       if (sourceNodeId !== targetNodeId) {
         // Check that we're connecting output to input
         const isValid = (this.currentEdge.sourcePortType === 'output' && targetPortType === 'input') ||
-                       (this.currentEdge.sourcePortType === 'input' && targetPortType === 'output');
-        
+          (this.currentEdge.sourcePortType === 'input' && targetPortType === 'output');
+
         if (isValid) {
           // Determine which is output and which is input
           let outputNodeId, outputPortId, inputNodeId, inputPortId;
-          
+
           if (this.currentEdge.sourcePortType === 'output') {
             outputNodeId = sourceNodeId;
             outputPortId = this.currentEdge.sourcePortId;
@@ -1279,16 +1299,16 @@ class GraphEditor extends HTMLElement {
             inputNodeId = sourceNodeId;
             inputPortId = this.currentEdge.sourcePortId;
           }
-          
+
           this.addEdge(outputNodeId, inputNodeId, outputPortId, inputPortId);
         }
       }
     }
-    
+
     // Cleanup
     this.currentEdge.element.remove();
     this.currentEdge = null;
-    
+
     // Remove hover states
     this.shadowRoot.querySelectorAll('.port.hover').forEach(p => {
       p.classList.remove('hover');
@@ -1315,17 +1335,17 @@ class GraphEditor extends HTMLElement {
       edge.sourcePort === sourcePortId &&
       edge.targetPort === targetPortId
     );
-    
+
     if (existing) {
       console.warn('Edge already exists');
       return null;
     }
-    
+
     const edgeId = this.generateId('edge');
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.classList.add('edge');
     path.dataset.edgeId = edgeId;
-    
+
     const edgeData = {
       sourceNode: sourceNodeId,
       targetNode: targetNodeId,
@@ -1333,38 +1353,38 @@ class GraphEditor extends HTMLElement {
       targetPort: targetPortId,
       element: path
     };
-    
+
     this.edges.set(edgeId, edgeData);
     this.edgesLayer.appendChild(path);
-    
+
     this.updateEdgePath(edgeData);
-    
+
     path.addEventListener('click', (e) => {
       e.stopPropagation();
       this.selectEdge(edgeData);
     });
-    
-    this.dispatchEvent(new CustomEvent('edge-added', { 
-      detail: { edgeId, sourceNodeId, targetNodeId, sourcePortId, targetPortId } 
+
+    this.dispatchEvent(new CustomEvent('edge-added', {
+      detail: { edgeId, sourceNodeId, targetNodeId, sourcePortId, targetPortId }
     }));
-    
+
     return edgeData;
   }
 
   updateEdgePath(edgeData) {
     const sourceNode = this.nodes.get(edgeData.sourceNode);
     const targetNode = this.nodes.get(edgeData.targetNode);
-    
+
     if (!sourceNode || !targetNode) return;
-    
+
     const sourcePort = sourceNode.element.querySelector(`[data-port-id="${edgeData.sourcePort}"]`);
     const targetPort = targetNode.element.querySelector(`[data-port-id="${edgeData.targetPort}"]`);
-    
+
     if (!sourcePort || !targetPort) return;
-    
+
     const startPos = this.getPortPosition(sourcePort);
     const endPos = this.getPortPosition(targetPort);
-    
+
     const pathData = this.calculateEdgePath(startPos, endPos);
     edgeData.element.setAttribute('d', pathData);
   }
@@ -1373,11 +1393,11 @@ class GraphEditor extends HTMLElement {
     switch (this.config.edgeStyle) {
       case 'straight':
         return `M ${start.x},${start.y} L ${end.x},${end.y}`;
-      
+
       case 'step':
         const midX = (start.x + end.x) / 2;
         return `M ${start.x},${start.y} L ${midX},${start.y} L ${midX},${end.y} L ${end.x},${end.y}`;
-      
+
       case 'bezier':
       default:
         const dx = Math.abs(end.x - start.x);
@@ -1392,7 +1412,7 @@ class GraphEditor extends HTMLElement {
 
   updateConnectedEdges(node) {
     const nodeId = node.dataset.nodeId;
-    
+
     this.edges.forEach(edge => {
       if (edge.sourceNode === nodeId || edge.targetNode === nodeId) {
         this.updateEdgePath(edge);
@@ -1403,25 +1423,33 @@ class GraphEditor extends HTMLElement {
   removeEdge(edgeId) {
     const edge = this.edges.get(edgeId);
     if (!edge) return;
-    
+
     edge.element.remove();
     this.edges.delete(edgeId);
-    
-    this.dispatchEvent(new CustomEvent('edge-removed', { detail: { edgeId } }));
+
+    this.dispatchEvent(new CustomEvent('edge-removed', {
+      detail: {
+        edgeId,
+        sourceNodeId: edge.sourceNode,
+        targetNodeId: edge.targetNode,
+        sourcePortId: edge.sourcePort,
+        targetPortId: edge.targetPort
+      }
+    }));
   }
 
   selectEdge(edgeData) {
     this.clearSelection();
     this.selectedElement = edgeData.element;
     edgeData.element.classList.add('selected');
-    
+
     // Fire selection-changed event
-    this.dispatchEvent(new CustomEvent('selection-changed', { 
-      detail: { 
-        selected: edgeData.element, 
-        type: 'edge', 
-        edgeId: edgeData.element.dataset.edgeId 
-      } 
+    this.dispatchEvent(new CustomEvent('selection-changed', {
+      detail: {
+        selected: edgeData.element,
+        type: 'edge',
+        edgeId: edgeData.element.dataset.edgeId
+      }
     }));
   }
 
@@ -1435,17 +1463,17 @@ class GraphEditor extends HTMLElement {
     this.shadowRoot.querySelectorAll('.node.selected').forEach(node => {
       node.classList.remove('selected');
     });
-    
+
     // Clear all selected edges
     this.shadowRoot.querySelectorAll('.edge.selected').forEach(edge => {
       edge.classList.remove('selected');
     });
-    
+
     this.selectedElement = null;
-    
+
     // Fire selection-changed event
-    this.dispatchEvent(new CustomEvent('selection-changed', { 
-      detail: { selected: null, count: 0 } 
+    this.dispatchEvent(new CustomEvent('selection-changed', {
+      detail: { selected: null, count: 0 }
     }));
   }
 
@@ -1455,7 +1483,7 @@ class GraphEditor extends HTMLElement {
   deleteSelected() {
     // Check for multiple selected nodes
     const selectedNodes = this.shadowRoot.querySelectorAll('.node.selected');
-    
+
     if (selectedNodes.length > 0) {
       // Delete all selected nodes
       selectedNodes.forEach(node => {
@@ -1465,10 +1493,10 @@ class GraphEditor extends HTMLElement {
       this.selectedElement = null;
       return;
     }
-    
+
     // Single element selection
     if (!this.selectedElement) return;
-    
+
     if (this.selectedElement.classList.contains('node')) {
       const nodeId = this.selectedElement.dataset.nodeId;
       this.removeNode(nodeId);
@@ -1476,7 +1504,7 @@ class GraphEditor extends HTMLElement {
       const edgeId = this.selectedElement.dataset.edgeId;
       this.removeEdge(edgeId);
     }
-    
+
     this.selectedElement = null;
   }
 
@@ -1519,7 +1547,7 @@ class GraphEditor extends HTMLElement {
   setConfig(config) {
     const oldConfig = { ...this.config };
     this.config = { ...this.config, ...config };
-    
+
     // Handle grid visibility change
     if ('showGrid' in config && config.showGrid !== oldConfig.showGrid) {
       if (config.showGrid) {
@@ -1530,15 +1558,15 @@ class GraphEditor extends HTMLElement {
         ctx.clearRect(0, 0, this.gridCanvas.width, this.gridCanvas.height);
       }
     }
-    
+
     // Redraw grid if size changed
     if ('gridSize' in config && config.gridSize !== oldConfig.gridSize && this.config.showGrid) {
       this.drawGrid();
     }
-    
+
     // Re-setup event listeners if keyboard shortcuts setting changed
-    if ('enableKeyboardShortcuts' in config && 
-        config.enableKeyboardShortcuts !== oldConfig.enableKeyboardShortcuts) {
+    if ('enableKeyboardShortcuts' in config &&
+      config.enableKeyboardShortcuts !== oldConfig.enableKeyboardShortcuts) {
       // Event listeners are document-level, so we need to track the state
       // The setupKeyboardShortcuts method checks this.config.enableKeyboardShortcuts
     }
@@ -1560,7 +1588,7 @@ class GraphEditor extends HTMLElement {
     if (existing) {
       existing.remove();
     }
-    
+
     // Add new stylesheet
     const styleElement = document.createElement('style');
     styleElement.className = 'custom-stylesheet';
@@ -1582,7 +1610,7 @@ class GraphEditor extends HTMLElement {
       if (existing) {
         existing.remove();
       }
-      
+
       const link = document.createElement('link');
       link.className = 'custom-stylesheet';
       link.rel = 'stylesheet';
@@ -1630,7 +1658,7 @@ class GraphEditor extends HTMLElement {
       ...node.data,
       position: this.getNodePosition(node.element)
     }));
-    
+
     const edges = Array.from(this.edges.entries()).map(([id, edge]) => ({
       id,
       source: edge.sourceNode,
@@ -1638,7 +1666,7 @@ class GraphEditor extends HTMLElement {
       sourcePort: edge.sourcePort,
       targetPort: edge.targetPort
     }));
-    
+
     return { nodes, edges };
   }
 
@@ -1652,9 +1680,9 @@ class GraphEditor extends HTMLElement {
    */
   importGraph(data) {
     this.clearGraph();
-    
+
     data.nodes.forEach(nodeData => this.addNode(nodeData));
-    data.edges.forEach(edgeData => 
+    data.edges.forEach(edgeData =>
       this.addEdge(edgeData.source, edgeData.target, edgeData.sourcePort, edgeData.targetPort)
     );
   }
@@ -1684,9 +1712,9 @@ class GraphEditor extends HTMLElement {
       this.centerView();
       return;
     }
-    
+
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    
+
     this.nodes.forEach(node => {
       const pos = this.getNodePosition(node.element);
       const rect = node.element.getBoundingClientRect();
@@ -1695,23 +1723,23 @@ class GraphEditor extends HTMLElement {
       maxX = Math.max(maxX, pos.x + rect.width / this.scale);
       maxY = Math.max(maxY, pos.y + rect.height / this.scale);
     });
-    
+
     const padding = 50;
     const graphWidth = maxX - minX + padding * 2;
     const graphHeight = maxY - minY + padding * 2;
-    
+
     const rect = this.getBoundingClientRect();
     const scaleX = rect.width / graphWidth;
     const scaleY = rect.height / graphHeight;
-    
+
     this.scale = Math.min(scaleX, scaleY, 1);
-    
+
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
-    
+
     this.canvasOffset.x = rect.width / 2 - centerX * this.scale;
     this.canvasOffset.y = rect.height / 2 - centerY * this.scale;
-    
+
     this.updateCanvasPosition();
   }
 
@@ -1727,16 +1755,11 @@ class GraphEditor extends HTMLElement {
   updateNodeContent(nodeId, content) {
     const node = this.nodes.get(nodeId);
     if (!node) return;
-    
-    let display = node.element.querySelector('.display');
-    if (!display && content) {
-      display = document.createElement('div');
-      display.className = 'display';
-      node.element.insertBefore(display, node.element.firstChild);
-    }
-    
+
+    // Display element always exists now
+    const display = node.element.querySelector('.display');
     if (display) {
-      display.innerHTML = content;
+      display.innerHTML = content || '';
     }
   }
 
@@ -1751,7 +1774,7 @@ class GraphEditor extends HTMLElement {
   updateNodeTitle(nodeId, title) {
     const node = this.nodes.get(nodeId);
     if (!node) return;
-    
+
     const titleEl = node.element.querySelector('.title');
     if (titleEl) {
       titleEl.textContent = title;
