@@ -165,7 +165,8 @@ class GraphEditor extends HTMLElement {
       minZoom: 0.1,
       maxZoom: 3,
       zoomToMouse: true, // Zoom to cursor vs canvas center
-      enableKeyboardShortcuts: true
+      enableKeyboardShortcuts: true,
+      nodeLayout: 'classic' // 'classic' | 'modern'
     };
   }
 
@@ -284,7 +285,7 @@ class GraphEditor extends HTMLElement {
         --edge-temporary-dash: 5, 5;
         
         /* Transition timing */
-        --transition-duration: 0.2s;
+        --transition-duration: 0.0s;
         --transition-timing: ease;
       }
 
@@ -355,117 +356,316 @@ class GraphEditor extends HTMLElement {
         transform-origin: 0 0;
       }
 
-      /* Node Styles */
+      /* Node Styles - Engineering Three-Column Layout */
       .node {
         position: absolute;
         display: flex;
         flex-direction: column;
-        gap: var(--node-gap);
         min-width: var(--node-min-width);
         user-select: none;
         pointer-events: all;
         filter: drop-shadow(var(--node-shadow));
-      }
-
-      .node > * {
         background-color: var(--node-bg);
+        border: var(--node-border-width) solid var(--node-border-color, transparent);
         border-radius: var(--node-border-radius);
-        width: 100%;
-        border: var(--node-border-width) solid transparent;
-        transition: border-color var(--transition-duration) var(--transition-timing);
+        transition: all var(--transition-duration) var(--transition-timing);
+        overfow: hidden;
       }
 
-      .node.selected > * {
-        border-color: var(--selected-color);
+      .node.selected {
+        /* border-color: var(--selected-color); */
+        box-shadow: 0 0 0 2px var(--selected-color);
       }
 
-      .node .display {
-        overflow: hidden;
-        aspect-ratio: 1 / 1;
-        padding: 0.5rem;
-        border-bottom-left-radius: 0;
-        border-bottom-right-radius: 0;
-      }
-
-      .node .display:empty {
-        display: none;
-      }
-
-      .node .block {
+      /* Node Header (Title Bar) */
+      .node-header {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        padding: var(--node-padding);
-        cursor: grab;
-        position: relative;
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        background: var(--node-header-bg, rgba(255, 255, 255, 0.05));
+        border-bottom: 1px solid var(--node-border-color, rgba(255, 255, 255, 0.1));
+        border-radius: var(--node-border-radius) var(--node-border-radius) 0 0;
+        cursor: move;
       }
 
-      .node .block:active {
+      .node-header:active {
         cursor: grabbing;
       }
 
-      .node .title {
-        text-align: center;
-        padding: 0 0.5rem;
+      .node-header .title {
+        flex: 1;
         font-weight: var(--node-title-weight);
         font-size: var(--node-title-size);
         color: var(--node-text);
-        flex: 1;
-        max-width: var(--node-title-max-width);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        text-align: center;
       }
 
-      .ports {
+      /* Node Body - Three Column Layout */
+      .node-body {
+        display: flex;
+        flex-direction: row;
+        gap: 0.25rem;
+        padding: 0.25rem;
+        min-height: 2.5rem;
+        align-items: stretch;
+      }
+
+      /* Port Columns */
+      .ports-column {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
-        position: relative;
+        justify-content: space-around;
+        gap: var(--port-spacing, 0.75rem);
+        /* padding: 0.75rem 0.5rem; */
+        min-width: fit-content;
       }
 
-      .ports.inputs {
+      .ports-column.inputs {
+        padding-left: 0;
         align-items: flex-start;
       }
 
-      .ports.outputs {
+      .ports-column.outputs {
+        padding-right: 0;
         align-items: flex-end;
       }
 
+      /* Port Row - Socket + Label */
+      .port-row {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        position: relative;
+      }
+
+      .inputs .port-row {
+        flex-direction: row; /* Socket on left, label on right */
+      }
+
+      .outputs .port-row {
+        flex-direction: row-reverse; /* Socket on right, label on left */
+      }
+
+      /* Port Labels */
+      .port-label {
+        text-transform: capitalize;
+        font-size: var(--port-label-size, 0.8rem);
+        color: var(--port-label-color, var(--node-text));
+        white-space: nowrap;
+        user-select: none;
+        opacity: 0.9;
+        transition: opacity var(--transition-duration);
+      }
+
+      .port-row:hover .port-label {
+        opacity: 1;
+      }
+
+      .inputs .port-label {
+        text-align: left;
+      }
+
+      .outputs .port-label {
+        text-align: right;
+      }
+
+      /* Port Sockets */
       .port {
         width: var(--port-size);
         height: var(--port-size);
-        border-radius: var(--port-border-radius);
-        background-color: var(--port-color);
-        cursor: pointer;
+        border-radius: 50%;
+        /* border: 2px solid var(--port-color); */
+        background: var(--port-color);
+        cursor: crosshair;
+        flex-shrink: 0;
         transition: all var(--transition-duration) var(--transition-timing);
         position: relative;
         z-index: 10;
       }
 
-      .port:hover {
-        transform: scale(var(--port-hover-scale));
-        box-shadow: var(--port-shadow);
-      }
-
       .port.input {
-        transform: translateX(var(--input-port-offset));
+        /* margin-left: calc(var(--port-size) / -2); */
       }
 
       .port.output {
-        transform: translateX(var(--output-port-offset));
+        /* margin-right: calc(var(--port-size) / -2); */
+      }
+
+      .port:hover {
+        transform: scale(var(--port-hover-scale));
+        /* background: var(--port-color); */
+        /* box-shadow: var(--port-shadow); */
       }
 
       .port.input:hover {
-        transform: translateX(var(--input-port-offset)) scale(var(--port-hover-scale));
+        /* transform: translateX(0) scale(var(--port-hover-scale)); */
+        /* margin-left: calc(var(--port-size) / -2); */
       }
 
       .port.output:hover {
-        transform: translateX(var(--output-port-offset)) scale(var(--port-hover-scale));
+        /* transform: translateX(0) scale(var(--port-hover-scale)); */
+        /* margin-right: calc(var(--port-size) / -2); */
+      }
+
+      .port.connecting {
+        background: var(--port-color);
+        /* box-shadow: 0 0 10px var(--port-color); */
       }
 
       .port.hover {
         background-color: var(--edge-hover-color);
+      }
+
+      /* Display Column (Middle) */
+      .display-column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 100px; /* Ensure minimum usable width */
+        /* padding: 0.75rem; */
+        overflow: hidden;
+        align-self: stretch; /* Match port column heights */
+      }
+
+      .display {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        /* overflow: auto; */
+        color: var(--node-text);
+      }
+
+      .display:empty {
+        min-height: 0;
+      }
+
+      /* Modern Layout Styles */
+      :host([data-layout="modern"]) .node {
+        display: flex;
+        flex-direction: column;
+        min-width: 180px;
+      }
+
+      :host([data-layout="modern"]) .node .title {
+        order: -2;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 0.75rem 1rem;
+        text-align: center;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--node-border-radius) var(--node-border-radius) 0 0;
+        margin: 0;
+        max-width: none;
+        cursor: grab;
+      }
+
+      :host([data-layout="modern"]) .node .title:active {
+        cursor: grabbing;
+      }
+
+      :host([data-layout="modern"]) .node .display {
+        order: -1;
+        border-radius: 0;
+        padding: 1rem;
+        min-height: 60px;
+        aspect-ratio: unset;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      :host([data-layout="modern"]) .node .display:empty {
+        display: flex;
+        min-height: 0;
+        padding: 0;
+      }
+
+      :host([data-layout="modern"]) .node .block {
+        order: 0;
+        display: flex;
+        flex-direction: row;
+        padding: 0;
+        align-items: stretch;
+        position: relative;
+        min-height: 40px;
+        cursor: default;
+      }
+
+      :host([data-layout="modern"]) .ports {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        gap: 0.75rem;
+        padding: 0.75rem 0.5rem;
+        flex: 0 0 auto;
+      }
+
+      :host([data-layout="modern"]) .ports.inputs {
+        align-items: flex-start;
+        padding-left: 0;
+      }
+
+      :host([data-layout="modern"]) .ports.outputs {
+        align-items: flex-end;
+        padding-right: 0;
+      }
+
+      :host([data-layout="modern"]) .port {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid var(--node-bg);
+        position: relative;
+        transform: none;
+      }
+
+      :host([data-layout="modern"]) .port.input {
+        transform: translateX(-50%);
+      }
+
+      :host([data-layout="modern"]) .port.output {
+        transform: translateX(50%);
+      }
+
+      :host([data-layout="modern"]) .port:hover {
+        transform: translateX(-50%) scale(1.3);
+      }
+
+      :host([data-layout="modern"]) .port.output:hover {
+        transform: translateX(50%) scale(1.3);
+      }
+
+      /* Port labels for modern layout */
+      :host([data-layout="modern"]) .port::after {
+        content: attr(title);
+        position: absolute;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        color: var(--node-text);
+        opacity: 0.7;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+      }
+
+      :host([data-layout="modern"]) .port.input::after {
+        left: 20px;
+      }
+
+      :host([data-layout="modern"]) .port.output::after {
+        right: 20px;
+      }
+
+      /* Middle section for modern layout (between ports) */
+      :host([data-layout="modern"]) .node .block::before {
+        content: '';
+        flex: 1;
+        min-width: 40px;
       }
 
       /* Edge styles */
@@ -991,24 +1191,34 @@ class GraphEditor extends HTMLElement {
     const outputs = data.outputs || [];
 
     node.innerHTML = `
-      <div class="display">${data.content || ''}</div>
-      <div class="block">
-        <div class="ports inputs">
+      <div class="node-header">
+        <div class="title">${data.title || 'Node'}</div>
+      </div>
+      <div class="node-body">
+        <div class="ports-column inputs">
           ${inputs.map(input => `
-            <div class="port input" 
-                 data-port-id="${input.id}"
-                 data-port-type="${input.type}"
-                 title="${input.label}">
+            <div class="port-row">
+              <div class="port input" 
+                   data-port-id="${input.id}"
+                   data-port-type="${input.type}"
+                   title="${input.label} (${input.type})">
+              </div>
+              <span class="port-label">${input.label}</span>
             </div>
           `).join('')}
         </div>
-        <div class="title">${data.title || 'Node'}</div>
-        <div class="ports outputs">
+        <div class="display-column">
+          <div class="display">${data.content || ''}</div>
+        </div>
+        <div class="ports-column outputs">
           ${outputs.map(output => `
-            <div class="port output" 
-                 data-port-id="${output.id}"
-                 data-port-type="${output.type}"
-                 title="${output.label}">
+            <div class="port-row">
+              <span class="port-label">${output.label}</span>
+              <div class="port output" 
+                   data-port-id="${output.id}"
+                   data-port-type="${output.type}"
+                   title="${output.label} (${output.type})">
+              </div>
             </div>
           `).join('')}
         </div>
@@ -1021,13 +1231,14 @@ class GraphEditor extends HTMLElement {
   }
 
   setupNodeEventListeners(node) {
-    const block = node.querySelector('.block');
+    const header = node.querySelector('.node-header');
     let isDraggingNode = false;
     let dragStartX, dragStartY;
     let nodeStartX, nodeStartY;
 
-    // Node selection and dragging
-    block.addEventListener('pointerdown', (e) => {
+    // Function to handle drag start
+    const handleDragStart = (e) => {
+      // Don't drag when clicking ports
       if (e.target.classList.contains('port')) return;
 
       e.stopPropagation(); // Prevent canvas panning
@@ -1068,7 +1279,12 @@ class GraphEditor extends HTMLElement {
       dragStartY = e.clientY;
       nodeStartX = parseFloat(node.style.left);
       nodeStartY = parseFloat(node.style.top);
-    });
+    };
+
+    // Node selection and dragging on header
+    if (header) {
+      header.addEventListener('pointerdown', handleDragStart);
+    }
 
     const onMove = (e) => {
       if (!isDraggingNode) return;
@@ -1119,14 +1335,16 @@ class GraphEditor extends HTMLElement {
     };
 
     // Store initial positions for multi-drag
-    block.addEventListener('pointerdown', (e) => {
-      if (e.target.classList.contains('port')) return;
-      const selectedNodes = this.shadowRoot.querySelectorAll('.node.selected');
-      selectedNodes.forEach(n => {
-        n.dataset.dragStartX = parseFloat(n.style.left);
-        n.dataset.dragStartY = parseFloat(n.style.top);
+    if (header) {
+      header.addEventListener('pointerdown', (e) => {
+        if (e.target.classList.contains('port')) return;
+        const selectedNodes = this.shadowRoot.querySelectorAll('.node.selected');
+        selectedNodes.forEach(n => {
+          n.dataset.dragStartX = parseFloat(n.style.left);
+          n.dataset.dragStartY = parseFloat(n.style.top);
+        });
       });
-    });
+    }
 
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', onUp);
@@ -1535,13 +1753,15 @@ class GraphEditor extends HTMLElement {
    * @param {number} [config.maxZoom] - Maximum zoom level
    * @param {boolean} [config.zoomToMouse] - Zoom to cursor vs canvas center
    * @param {boolean} [config.enableKeyboardShortcuts] - Enable keyboard shortcuts
+   * @param {string} [config.nodeLayout] - Node layout: 'classic' or 'modern'
    * 
    * @example
    * editor.setConfig({
    *   gridSize: 25,
    *   showGrid: true,
    *   zoomToMouse: true,
-   *   enableKeyboardShortcuts: true
+   *   enableKeyboardShortcuts: true,
+   *   nodeLayout: 'modern'
    * });
    */
   setConfig(config) {
@@ -1562,6 +1782,11 @@ class GraphEditor extends HTMLElement {
     // Redraw grid if size changed
     if ('gridSize' in config && config.gridSize !== oldConfig.gridSize && this.config.showGrid) {
       this.drawGrid();
+    }
+
+    // Handle layout change
+    if ('nodeLayout' in config && config.nodeLayout !== oldConfig.nodeLayout) {
+      this.shadowRoot.host.setAttribute('data-layout', config.nodeLayout);
     }
 
     // Re-setup event listeners if keyboard shortcuts setting changed
